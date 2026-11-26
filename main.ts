@@ -1,12 +1,19 @@
-import { cp, mkdir, writeFile } from 'node:fs/promises';
+// Merapi Sky Patrol: copy game/ and screenshots/ to the output dir and write dossier.json.
+import { cpSync, mkdirSync, writeFileSync, existsSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-game.ts';
+
 const root = dirname(fileURLToPath(import.meta.url));
-const out = process.env.MAKEFUN_OUTPUT_DIR || '/output';
-await mkdir(out, { recursive: true });
-await cp(join(root, 'game'), join(out, 'game'), { recursive: true });
-await cp(join(root, 'screenshots'), join(out, 'screenshots'), { recursive: true });
-const dossier = await buildDossier(out, { text_max_bytes: 163840, screenshots: { max: 4, max_bytes: 262144 }, game_max_files: 993, game_max_bytes: 50331648, game_path_max_bytes: 1000 });
-await writeFile(join(out, 'dossier.json'), dossier);
-console.log('Dossier built:', join(out, 'dossier.json'));
+const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+rmSync(out, { recursive: true, force: true });
+mkdirSync(out, { recursive: true });
+if (existsSync(join(root, 'game'))) cpSync(join(root, 'game'), join(out, 'game'), { recursive: true });
+if (existsSync(join(root, 'screenshots'))) cpSync(join(root, 'screenshots'), join(out, 'screenshots'), { recursive: true });
+writeFileSync(join(out, 'dossier.json'), buildDossier(out, {
+  text_max_bytes: 163840,
+  screenshots: { max: 4, max_bytes: 262144 },
+  game_max_files: 993,
+  game_max_bytes: 50331648,
+  game_path_max_bytes: 1000,
+}));
