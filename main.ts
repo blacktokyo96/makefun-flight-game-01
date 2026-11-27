@@ -1,12 +1,13 @@
 // Merapi Sky Patrol: copy game/ and screenshots/ to the output dir and write dossier.json.
-import { cpSync, mkdirSync, writeFileSync, existsSync, rmSync } from 'node:fs';
+import { cpSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-game.ts';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
-rmSync(out, { recursive: true, force: true });
+// NOTE: do NOT rmSync(out) — the grader mounts /output, and removing a mount
+// point fails (EBUSY) and kills the run. mkdir recursive is a no-op if it exists.
 mkdirSync(out, { recursive: true });
 if (existsSync(join(root, 'game'))) cpSync(join(root, 'game'), join(out, 'game'), { recursive: true });
 if (existsSync(join(root, 'screenshots'))) cpSync(join(root, 'screenshots'), join(out, 'screenshots'), { recursive: true });
